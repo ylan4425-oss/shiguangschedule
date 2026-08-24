@@ -53,11 +53,13 @@ import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
 import com.xingheyuzhuan.shiguangschedule.data.db.main.TimeSlot
 import com.xingheyuzhuan.shiguangschedule.ui.components.NativeNumberPicker
+import com.xingheyuzhuan.shiguangschedule.data.repository.AppSettingsRepository
 import com.xingheyuzhuan.shiguangschedule.ui.components.ToastManager
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalTime
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import shiguangschedule.shared.generated.resources.Res
 import shiguangschedule.shared.generated.resources.a11y_add_time_slot
@@ -111,6 +113,11 @@ fun TimeSlotManagementScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val uiState by timeSlotViewModel.timeSlotsUiState.collectAsState()
+    val appSettingsRepository: AppSettingsRepository = koinInject()
+
+    LaunchedEffect(Unit) {
+        appSettingsRepository.markTimeSlotSettingsVisited()
+    }
 
     val localTimeSlots = remember {
         mutableStateListOf<TimeSlot>().apply { addAll(uiState.timeSlots.sortedBy { it.number }) }
