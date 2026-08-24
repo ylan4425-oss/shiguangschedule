@@ -389,7 +389,12 @@ fun WebViewScreen(
 
                                 ToastManager.show(toastExecutingImport)
                             } else {
-                                ToastManager.show(toastImportNotFoundFmt.replace("%s", jsFilePath.toString()))
+                                bridgeHandler.setImportTableId(tableId)
+
+                                val fullJsScript = "window.currentTableId = '$tableId';\n${GenericAdapterScript.script}"
+                                webViewController.executeScript(fullJsScript)
+
+                                ToastManager.show(toastExecutingImport)
                             }
                         } catch (e: Exception) {
                             ToastManager.show(toastLoadImportFailedFmt.replace("%s", e.message ?: ""))
