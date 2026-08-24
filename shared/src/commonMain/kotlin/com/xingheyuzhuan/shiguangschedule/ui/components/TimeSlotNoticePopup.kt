@@ -5,13 +5,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,21 +29,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 
-/**
- * 自定义时间段修改提醒浮窗
- *
- * 在用户未访问自定义时间段设置页面前，每次进入应用时以浮窗形式提醒。
- * 点击屏幕任意位置可关闭浮窗。
- *
- * @param onDismiss 点击任意位置关闭时的回调
- */
 @Composable
 fun TimeSlotNoticePopup(
-    onDismiss: () -> Unit
+    onDismiss: (dontShowAgain: Boolean) -> Unit
 ) {
+    var dontShowAgain by remember { mutableStateOf(true) }
+
     Popup(
         alignment = Alignment.Center,
-        onDismissRequest = onDismiss,
+        onDismissRequest = { onDismiss(dontShowAgain) },
         properties = PopupProperties(
             focusable = true,
             dismissOnBackPress = true,
@@ -46,7 +47,7 @@ fun TimeSlotNoticePopup(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clickable { onDismiss() }
+                .clickable { onDismiss(dontShowAgain) }
                 .background(Color(0x99000000)),
             contentAlignment = Alignment.Center
         ) {
@@ -55,8 +56,7 @@ fun TimeSlotNoticePopup(
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 6.dp,
                 shadowElevation = 8.dp,
-                modifier = Modifier
-                    .padding(horizontal = 32.dp)
+                modifier = Modifier.padding(horizontal = 32.dp)
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -78,8 +78,27 @@ fun TimeSlotNoticePopup(
                         color = Color.Black,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = dontShowAgain,
+                            onCheckedChange = { dontShowAgain = it }
+                        )
+                        Text(
+                            text = "不再提示",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal
+                        )
+                    }
                 }
             }
         }
