@@ -11,9 +11,12 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -24,6 +27,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.xingheyuzhuan.shiguangschedule.data.model.StartScreen
+import com.xingheyuzhuan.shiguangschedule.ui.components.TimeSlotNoticePopup
 import com.xingheyuzhuan.shiguangschedule.ui.schedule.WeeklyScheduleScreen
 import com.xingheyuzhuan.shiguangschedule.ui.schoolselection.list.AdapterSelectionScreen
 import com.xingheyuzhuan.shiguangschedule.ui.schoolselection.list.SchoolSelectionListScreen
@@ -56,6 +60,13 @@ import org.koin.compose.viewmodel.koinViewModel
 fun App() {
     val viewModel: SettingsViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
+    var showNoticePopup by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isReady, state.appSettings.hasVisitedTimeSlotSettings) {
+        if (state.isReady && !state.appSettings.hasVisitedTimeSlotSettings) {
+            showNoticePopup = true
+        }
+    }
 
     if (state.isReady) {
         ShiguangScheduleTheme(settings = state.appSettings) {
@@ -66,6 +77,10 @@ fun App() {
                 }
             }
             AppNavigation(startDestination = startDest)
+
+            if (showNoticePopup) {
+                TimeSlotNoticePopup(onDismiss = { showNoticePopup = false })
+            }
         }
     } else {
         Surface(modifier = Modifier.fillMaxSize()) {}
