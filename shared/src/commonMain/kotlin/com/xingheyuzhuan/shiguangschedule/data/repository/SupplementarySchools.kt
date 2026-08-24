@@ -10,7 +10,7 @@ import school_index.School
  * 这些学校未包含在官方适配仓库 (shiguang_warehouse) 中，
  * 在此以代码形式内置，确保小众院校用户也能在列表中找到自己的学校。
  *
- * 注意：学校教务系统 URL 基于常见模式推测，可能需要更新。
+ * 教务系统 URL 已通过网络搜索验证，部分学校使用统一身份认证或 IP 地址访问。
  * 实际的 JS 适配脚本 (asset_js_path) 需后续开发，否则 WebView 可打开教务页面但无法自动导入课程。
  */
 object SupplementarySchools {
@@ -62,7 +62,7 @@ object SupplementarySchools {
                     adapter_name = "保山学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "bsxy.js",
-                    import_url = "https://jwxt.bsxy.edu.cn/",
+                    import_url = "http://jwgl.bsnc.cn/jsxsd/",
                     description = "保山学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -79,7 +79,7 @@ object SupplementarySchools {
                     adapter_name = "昭通学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "ztxy.js",
-                    import_url = "https://jwxt.ztu.edu.cn/",
+                    import_url = "http://jwxt.ztu.edu.cn/xtgl/login_slogin.html",
                     description = "昭通学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -96,7 +96,7 @@ object SupplementarySchools {
                     adapter_name = "红河学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "hhxy.js",
-                    import_url = "https://jwxt.uoh.edu.cn/",
+                    import_url = "https://jwglxt.uoh.edu.cn/jwglxt/xtgl/login_slogin.html",
                     description = "红河学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -113,7 +113,7 @@ object SupplementarySchools {
                     adapter_name = "滇西科技师范学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "dxkj.js",
-                    import_url = "https://jwxt.wdxu.edu.cn/",
+                    import_url = "http://211.69.159.74/jwglxt/xtgl/login_slogin.html",
                     description = "滇西科技师范学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -130,7 +130,7 @@ object SupplementarySchools {
                     adapter_name = "楚雄师范学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "cxsf.js",
-                    import_url = "https://jwxt.cxtc.edu.cn/",
+                    import_url = "https://jwglxt.cxtc.edu.cn/",
                     description = "楚雄师范学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -147,8 +147,25 @@ object SupplementarySchools {
                     adapter_name = "玉溪师范学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "yxsf.js",
-                    import_url = "https://jwxt.yxtc.edu.cn/",
+                    import_url = "http://jwxt1.yxnu.edu.cn",
                     description = "玉溪师范学院教务系统导入适配",
+                    maintainer = "community"
+                )
+            )
+        ),
+        School(
+            id = "KMTDZY",
+            name = "昆明铁道职业技术学院",
+            initial = "K",
+            resource_folder = "kmtdzy",
+            adapters = listOf(
+                Adapter(
+                    adapter_id = "KMTDZY_01",
+                    adapter_name = "昆明铁道职业技术学院教务系统",
+                    category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
+                    asset_js_path = "kmtdzy.js",
+                    import_url = "http://jwcas.kmtdzy.cn:50001/jsxsd/",
+                    description = "昆明铁道职业技术学院教务系统导入适配",
                     maintainer = "community"
                 )
             )
@@ -166,7 +183,7 @@ object SupplementarySchools {
                     adapter_name = "凯里学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "klyx.js",
-                    import_url = "https://jwxt.kluniv.edu.cn/",
+                    import_url = "https://sys.kluniv.edu.cn:8004/jwglxt/xtgl/login_slogin.html",
                     description = "凯里学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -183,7 +200,7 @@ object SupplementarySchools {
                     adapter_name = "铜仁学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "trxy.js",
-                    import_url = "https://jwxt.tru.edu.cn/",
+                    import_url = "https://www.gztrc.edu.cn:17231/",
                     description = "铜仁学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -200,7 +217,7 @@ object SupplementarySchools {
                     adapter_name = "安顺学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "asxy.js",
-                    import_url = "https://jwxt.asu.edu.cn/",
+                    import_url = "http://jwxt.asu.edu.cn/jwweb/home.aspx",
                     description = "安顺学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -217,7 +234,7 @@ object SupplementarySchools {
                     adapter_name = "六盘水师范学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "lpss.js",
-                    import_url = "https://jwxt.lpssy.edu.cn/",
+                    import_url = "http://jwgl.lpssy.edu.cn/",
                     description = "六盘水师范学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -234,7 +251,7 @@ object SupplementarySchools {
                     adapter_name = "兴义民族师范学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "xymz.js",
-                    import_url = "https://jwxt.xynun.edu.cn/",
+                    import_url = "https://jwgl.xynun.edu.cn/xtgl/login_slogin.html",
                     description = "兴义民族师范学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -251,7 +268,7 @@ object SupplementarySchools {
                     adapter_name = "黔南民族师范学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "qnmz.js",
-                    import_url = "https://jwxt.sgmtu.edu.cn/",
+                    import_url = "http://jwc.sgmtu.edu.cn/jwweb/home.aspx",
                     description = "黔南民族师范学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -287,7 +304,7 @@ object SupplementarySchools {
                     adapter_name = "百色学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "bsyx.js",
-                    import_url = "https://jwxt.bsuc.edu.cn/",
+                    import_url = "http://jwgl.bsuc.edu.cn/bsxyjw/",
                     description = "百色学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -304,7 +321,7 @@ object SupplementarySchools {
                     adapter_name = "贺州学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "hzxy.js",
-                    import_url = "https://jwxt.hzu.gx.cn/",
+                    import_url = "http://jwglxt.hzxy.edu.cn/jwglxt",
                     description = "贺州学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -321,7 +338,7 @@ object SupplementarySchools {
                     adapter_name = "梧州学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "wzxy.js",
-                    import_url = "https://jwxt.wzu.edu.cn/",
+                    import_url = "https://jwxt.gxuwz.edu.cn/jwglxt/xtgl/login_slogin.html",
                     description = "梧州学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -340,7 +357,7 @@ object SupplementarySchools {
                     adapter_name = "武夷学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "wyxy.js",
-                    import_url = "https://jwxt.wuyiu.edu.cn/",
+                    import_url = "https://jwxt.wuyiu.edu.cn/jsxsd",
                     description = "武夷学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -391,7 +408,7 @@ object SupplementarySchools {
                     adapter_name = "怀化学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "hhxy2.js",
-                    import_url = "https://jwxt.hhtc.edu.cn/",
+                    import_url = "http://jwmis.hhtc.edu.cn",
                     description = "怀化学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -425,7 +442,7 @@ object SupplementarySchools {
                     adapter_name = "井冈山大学教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "jgsu.js",
-                    import_url = "https://jwxt.jgsu.edu.cn/",
+                    import_url = "https://jw.jgsu.edu.cn/",
                     description = "井冈山大学教务系统导入适配",
                     maintainer = "community"
                 )
@@ -442,7 +459,7 @@ object SupplementarySchools {
                     adapter_name = "广州学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "gzxy.js",
-                    import_url = "https://jwxt.gzist.edu.cn/",
+                    import_url = "https://jw.gzist.edu.cn/jwglxt/xtgl/login_slogin.html",
                     description = "广州学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -459,7 +476,7 @@ object SupplementarySchools {
                     adapter_name = "邯郸学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "hdxy.js",
-                    import_url = "https://jwxt.hdc.edu.cn/",
+                    import_url = "https://jwgl.hdc.edu.cn/xtgl/login_slogin.html",
                     description = "邯郸学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -476,7 +493,7 @@ object SupplementarySchools {
                     adapter_name = "许昌学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "xcxy.js",
-                    import_url = "https://jwxt.xcu.edu.cn/",
+                    import_url = "http://jwglxt.xcu.edu.cn/jwglxt",
                     description = "许昌学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -493,7 +510,7 @@ object SupplementarySchools {
                     adapter_name = "衡阳师范学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "hyxy.js",
-                    import_url = "https://jwxt.hynu.edu.cn/",
+                    import_url = "https://hysfjw.hynu.edu.cn/jsxsd/",
                     description = "衡阳师范学院教务系统导入适配",
                     maintainer = "community"
                 )
@@ -527,8 +544,8 @@ object SupplementarySchools {
                     adapter_name = "内江师范学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "ncxy.js",
-                    import_url = "https://jwxt.njtc.edu.cn/",
-                    description = "内江师范学院教务系统导入适配",
+                    import_url = "http://210.41.183.152/xtgl/login_slogin.html",
+                    description = "内江师范学院教务系统导入适配（校内网）",
                     maintainer = "community"
                 )
             )
