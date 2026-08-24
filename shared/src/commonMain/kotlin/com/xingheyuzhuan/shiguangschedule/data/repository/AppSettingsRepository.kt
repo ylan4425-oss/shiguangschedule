@@ -24,13 +24,6 @@ import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 import kotlin.time.Clock
 
-/**
- * 应用配置领域仓库
- *
- * 核心职责：
- * 1. 协调全局偏好设置 (DataStore) 与课表物理配置 (Room) 之间的数据流。
- * 2. 提供时间维度计算算法（周次偏移、日期回溯）。
- */
 @Single
 class AppSettingsRepository(
     @Named("AppSettings") private val dataStore: DataStore<Preferences>,
@@ -45,10 +38,6 @@ class AppSettingsRepository(
         day()
     }
 
-    /**
-     * 课表配置模板
-     * 当 DataStore 选中的课表在数据库中尚未初始化配置时，以此模板为基础进行创建。
-     */
     private val COURSE_CONFIG_TEMPLATE = CourseTableConfig(
         courseTableId = "",
         showWeekends = false,
@@ -59,28 +48,15 @@ class AppSettingsRepository(
         firstDayOfWeek = DayOfWeek.MONDAY.isoDayNumber
     )
 
-    // 应用全局设置 (DataStore)
-
-    /**
-     * 获取应用设置数据流。
-     */
     fun getAppSettings(): Flow<AppSettingsModel> = dataStore.data.map { prefs ->
         val dbFirstTableId = courseTableDao.getFirstTableOnce()?.id ?: ""
-
         AppSettingsModel.fromPreferences(prefs, dbFirstTableId)
     }
 
-    /**
-     * 获取一次性的应用设置快照。
-     */
     suspend fun getAppSettingsOnce(): AppSettingsModel {
         return getAppSettings().first()
     }
 
-    /**
-     * 更新应用设置。
-     * 将对象解构并原子化地写入 DataStore。
-     */
     suspend fun insertOrUpdateAppSettings(newSettings: AppSettingsModel) {
         dataStore.edit { prefs ->
             prefs[AppSettingsModel.KEY_CURRENT_COURSE_TABLE_ID] = newSettings.currentCourseTableId
@@ -97,28 +73,24 @@ class AppSettingsRepository(
             prefs[AppSettingsModel.KEY_CUSTOM_LIGHT_PRIMARY] = newSettings.customLightPrimary
             prefs[AppSettingsModel.KEY_CUSTOM_DARK_PRIMARY] = newSettings.customDarkPrimary
             prefs[AppSettingsModel.KEY_DEVELOPER_MODE_ENABLED] = newSettings.developerModeEnabled
+            prefs[AppSettingsModel.KEY_HAS_VISITED_TIME_SLOT_SETTINGS] = newSettings.hasVisitedTimeSlotSettings
         }
     }
 
-    // 课表具体物理配置 (Room)
+    suspend fun markTimeSlotSettingsVisited() {
+        dataStore.edit { prefs ->
+            prefs[AppSettingsModel.KEY_HAS_VISITED_TIME_SLOT_SETTINGS] = true
+        }
+    }
 
-    /**
-     * 根据课表ID获取一次性配置快照。
-     */
     suspend fun getCourseConfigOnce(tableId: String): CourseTableConfig? {
         return courseTableConfigDao.getConfigOnce(tableId)
     }
 
-    /**
-     * 根据课表ID实时获取配置数据流。
-     */
     fun getCourseTableConfigFlow(courseTableId: String): Flow<CourseTableConfig?> {
         return courseTableConfigDao.getConfigById(courseTableId)
     }
 
-    /**
-     * 更新或插入特定课表的物理配置。
-     */
     suspend fun insertOrUpdateCourseConfig(newConfig: CourseTableConfig) {
         val constrainedConfig = when {
             newConfig.firstDayOfWeek == DayOfWeek.SUNDAY.isoDayNumber -> {
@@ -132,11 +104,6 @@ class AppSettingsRepository(
         courseTableConfigDao.insertOrUpdate(constrainedConfig)
     }
 
-    // 业务算法 (时间、周次计算)
-
-    /**
-     * 核心周次偏移算法。
-     */
     fun getWeekIndexAtDate(
         targetDate: LocalDate,
         startDateStr: String?,
@@ -159,9 +126,6 @@ class AppSettingsRepository(
         }
     }
 
-    /**
-     * 基于当前数据库/DataStore状态计算当前自然周次。
-     */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun calculateCurrentWeekFromDb(): Flow<Int?> = getAppSettings().flatMapLatest { appSettings ->
         val currentCourseId = appSettings.currentCourseTableId.ifEmpty {
@@ -179,9 +143,6 @@ class AppSettingsRepository(
         }
     }
 
-    /**
-     * 根据目标周数反推开学日期。
-     */
     suspend fun setSemesterStartDateFromWeek(week: Int?) {
         val appSettings = getAppSettingsOnce()
         val currentCourseId = appSettings.currentCourseTableId.ifEmpty { return }
@@ -199,9 +160,6 @@ class AppSettingsRepository(
         courseTableConfigDao.insertOrUpdate(updatedConfig)
     }
 
-    /**
-     * 辅助函数：根据目标周数反推开学日期。
-     */
     private fun calculateSemesterStartDate(week: Int, firstDayOfWeekInt: Int): String {
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         val firstDayOfWeek = DayOfWeek(firstDayOfWeekInt)
@@ -211,9 +169,6 @@ class AppSettingsRepository(
         return semesterStartDate.format(DATE_FORMATTER)
     }
 
-    /**
-     * 对齐日期到指定每周首日的指定星期几。
-     */
     private fun getPreviousOrSameDayOfWeek(date: LocalDate, targetDayOfWeek: DayOfWeek): LocalDate {
         val currentDay = date.dayOfWeek.isoDayNumber
         val targetDay = targetDayOfWeek.isoDayNumber
