@@ -28,7 +28,7 @@ object SupplementarySchools {
                     adapter_name = "文山学院教务系统",
                     category = AdapterCategory.BACHELOR_AND_ASSOCIATE,
                     asset_js_path = "wsxy.js",
-                    import_url = "https://jwxt.wsxy.edu.cn/",
+                    import_url = "https://cas.wsu.edu.cn:4433/lyuapServer/login?service=https://home.wsu.edu.cn:4433/shiro-cas",
                     description = "文山学院教务系统导入适配",
                     maintainer = "community"
                 )
