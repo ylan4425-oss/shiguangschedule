@@ -32,14 +32,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import org.jetbrains.compose.resources.painterResource
-import shiguangschedule.shared.generated.resources.Res
 
 @Composable
 fun DonateCapsuleButton(
@@ -125,12 +122,7 @@ private fun DonateDialog(
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                         contentAlignment = Alignment.Center
                     ) {
-                        androidx.compose.foundation.Image(
-                            painter = painterResource(Res.drawable.donate_qr),
-                            contentDescription = "赞赏码",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        DonateQrImage(modifier = Modifier.fillMaxSize())
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
