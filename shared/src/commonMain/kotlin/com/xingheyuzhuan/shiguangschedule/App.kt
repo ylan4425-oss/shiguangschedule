@@ -66,50 +66,50 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
- val viewModel: SettingsViewModel = koinViewModel()
- val state by viewModel.uiState.collectAsState()
- var showNoticePopup by remember { mutableStateOf(false) }
- val appSettingsRepository: AppSettingsRepository = org.koin.compose.koinInject()
- val coroutineScope = rememberCoroutineScope()
+    val viewModel: SettingsViewModel = koinViewModel()
+    val state by viewModel.uiState.collectAsState()
+    var showNoticePopup by remember { mutableStateOf(false) }
+    val appSettingsRepository: AppSettingsRepository = org.koin.compose.koinInject()
+    val coroutineScope = rememberCoroutineScope()
 
- LaunchedEffect(state.isReady, state.appSettings.hasVisitedTimeSlotSettings) {
- if (state.isReady && !state.appSettings.hasVisitedTimeSlotSettings) {
- showNoticePopup = true
- }
- }
+    LaunchedEffect(state.isReady, state.appSettings.hasVisitedTimeSlotSettings) {
+        if (state.isReady && !state.appSettings.hasVisitedTimeSlotSettings) {
+            showNoticePopup = true
+        }
+    }
 
- if (state.isReady) {
- ShiguangScheduleTheme(settings = state.appSettings) {
- val startDest = remember(state.appSettings.startScreen) {
- when (state.appSettings.startScreen) {
- StartScreen.COURSE_SCHEDULE -> Destination.CourseSchedule
- StartScreen.TODAY_SCHEDULE -> Destination.TodaySchedule
- }
- }
- Box(modifier = Modifier.fillMaxSize()) {
- AppNavigation(startDestination = startDest)
+    if (state.isReady) {
+        ShiguangScheduleTheme(settings = state.appSettings) {
+            val startDest = remember(state.appSettings.startScreen) {
+                when (state.appSettings.startScreen) {
+                    StartScreen.COURSE_SCHEDULE -> Destination.CourseSchedule
+                    StartScreen.TODAY_SCHEDULE -> Destination.TodaySchedule
+                }
+            }
+            Box(modifier = Modifier.fillMaxSize()) {
+                AppNavigation(startDestination = startDest)
 
- DonateCapsuleButton(
- modifier = Modifier
- .align(Alignment.TopStart)
- .padding(top = 8.dp, start = 8.dp)
- )
+                DonateCapsuleButton(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 8.dp, start = 8.dp)
+                )
 
- if (showNoticePopup) {
- TimeSlotNoticePopup(onDismiss = { dontShowAgain ->
- showNoticePopup = false
- if (dontShowAgain) {
- coroutineScope.launch {
- appSettingsRepository.markTimeSlotSettingsVisited()
- }
- }
- })
- }
- }
- }
- } else {
- Surface(modifier = Modifier.fillMaxSize()) {}
- }
+                if (showNoticePopup) {
+                    TimeSlotNoticePopup(onDismiss = { dontShowAgain ->
+                        showNoticePopup = false
+                        if (dontShowAgain) {
+                            coroutineScope.launch {
+                                appSettingsRepository.markTimeSlotSettingsVisited()
+                            }
+                        }
+                    })
+                }
+            }
+        }
+    } else {
+        Surface(modifier = Modifier.fillMaxSize()) {}
+    }
 }
 
 @Composable
