@@ -16,6 +16,9 @@ output-metadata.json
 
 *.jks
 *.keystore
+# Never commit signing keystore, even base64-encoded
+*.jks.base64.txt
+androidApp/release.jks.base64.txt
 google-services.json
 
 *.iml

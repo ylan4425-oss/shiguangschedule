@@ -35,7 +35,28 @@
                 android:textColor="@color/widget_text_secondary"
                 android:textSize="11dp"
                 tools:text="今日还有 3 节课" />
+
+            <ImageView
+                android:id="@+id/btn_refresh"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_toStartOf="@id/tv_header_count_summary"
+                android:layout_marginEnd="6dp"
+                android:src="@android:drawable/ic_popup_refresh"
+                android:contentDescription="@string/a11y_widget_refresh"
+                android:visibility="visible" />
         </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tv_countdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:textColor="@color/widget_text_secondary"
+            android:textSize="11dp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="15分钟后上课" />
 
         <LinearLayout
             android:id="@+id/container_courses"

@@ -572,4 +572,13 @@
     <string name="backup_target_webdav">WebDAV 云同步</string>
     <string name="backup_target_local_zip">本地 ZIP 文件</string>
 
+    <!-- 小组件功能增强 -->
+    <string name="widget_countdown_in_class">上课中</string>
+    <string name="widget_countdown_5min">5分钟后上课</string>
+    <string name="widget_no_courses_guide">请先导入课表</string>
+    <string name="a11y_widget_refresh">刷新小组件</string>
+    <string name="donate_capsule">赞赏</string>
+    <string name="donate_title">支持开发者</string>
+    <string name="donate_tip">扫码赞赏，感谢支持</string>
+
 </resources>

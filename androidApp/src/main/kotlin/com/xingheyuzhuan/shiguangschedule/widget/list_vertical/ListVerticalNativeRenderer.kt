@@ -7,10 +7,12 @@ import android.view.View
 import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
+import com.xingheyuzhuan.shiguangschedule.widget.WidgetRefreshReceiver
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 object ListVerticalNativeRenderer {
 
@@ -28,6 +30,15 @@ object ListVerticalNativeRenderer {
         )
         rv.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
+        val refreshIntent = Intent(context, WidgetRefreshReceiver::class.java).apply {
+            action = WidgetRefreshReceiver.ACTION_REFRESH
+        }
+        val refreshPendingIntent = PendingIntent.getBroadcast(
+            context, 2, refreshIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        rv.setOnClickPendingIntent(R.id.btn_refresh, refreshPendingIntent)
+
         val now = LocalTime.now()
         val today = LocalDate.now()
         val tomorrow = today.plusDays(1)
@@ -39,6 +50,15 @@ object ListVerticalNativeRenderer {
                 rv,
                 context.getString(R.string.title_vacation),
                 context.getString(R.string.widget_vacation_expecting)
+            )
+            return rv
+        }
+
+        if (allCourses.isEmpty()) {
+            showFullStatus(
+                rv,
+                context.getString(R.string.widget_no_courses_guide),
+                ""
             )
             return rv
         }
@@ -60,20 +80,20 @@ object ListVerticalNativeRenderer {
         when {
             todayRemaining.isNotEmpty() -> {
                 val weekText = context.getString(R.string.title_current_week, currentWeek.toString())
-                rv.setTextViewText(R.id.tv_header_title, "$weekText  $dayOfWeekStr")
+                rv.setTextViewText(R.id.tv_header_title, "$weekText $dayOfWeekStr")
                 rv.setTextViewText(R.id.tv_header_count_summary, context.getString(R.string.widget_remaining_courses_format_today, todayRemaining.size))
-                renderCourseContent(context, rv, todayRemaining, snapshot)
+                renderCourseContent(context, rv, todayRemaining, snapshot, now)
             }
             tomorrowCourses.isNotEmpty() -> {
                 rv.setTextViewText(R.id.tv_header_title, context.getString(R.string.widget_tomorrow_course_preview))
                 rv.setTextViewText(R.id.tv_header_count_summary, context.getString(R.string.widget_remaining_courses_format_tomorrow, tomorrowCourses.size))
-                renderCourseContent(context, rv, tomorrowCourses, snapshot)
+                renderCourseContent(context, rv, tomorrowCourses, snapshot, null)
             }
             else -> {
                 val hasCoursesToday = allCourses.any { it.date == todayStr || it.date.isBlank() }
                 val tip = if (!hasCoursesToday) context.getString(R.string.text_no_courses_today) else context.getString(R.string.widget_today_courses_finished)
                 val weekText = context.getString(R.string.title_current_week, currentWeek.toString())
-                rv.setTextViewText(R.id.tv_header_title, "$weekText  $dayOfWeekStr")
+                rv.setTextViewText(R.id.tv_header_title, "$weekText $dayOfWeekStr")
                 showInnerStatus(rv, tip)
                 rv.setTextViewText(R.id.tv_header_count_summary, "")
             }
@@ -86,10 +106,12 @@ object ListVerticalNativeRenderer {
         rv.setViewVisibility(R.id.inner_content_card, View.VISIBLE)
         rv.setViewVisibility(R.id.container_courses, View.GONE)
         rv.setViewVisibility(R.id.container_status, View.GONE)
+        rv.setViewVisibility(R.id.btn_refresh, View.VISIBLE)
+        rv.setViewVisibility(R.id.tv_countdown, View.GONE)
         rv.removeAllViews(R.id.container_courses)
     }
 
-    private fun renderCourseContent(context: Context, rv: RemoteViews, courses: List<WidgetCourseProto>, snapshot: WidgetSnapshot) {
+    private fun renderCourseContent(context: Context, rv: RemoteViews, courses: List<WidgetCourseProto>, snapshot: WidgetSnapshot, now: LocalTime?) {
         rv.setViewVisibility(R.id.container_courses, View.VISIBLE)
 
         courses.forEachIndexed { index, course ->
@@ -119,6 +141,26 @@ object ListVerticalNativeRenderer {
                 )
             }
 
+            if (index == 0 && now != null) {
+                try {
+                    val startTime = LocalTime.parse(course.start_time)
+                    val endTime = LocalTime.parse(course.end_time)
+                    val countdownText = when {
+                        now.isAfter(startTime) && now.isBefore(endTime) -> {
+                            context.getString(R.string.widget_countdown_in_class)
+                        }
+                        now.isBefore(startTime) && ChronoUnit.MINUTES.between(now, startTime) <= 5 -> {
+                            context.getString(R.string.widget_countdown_5min)
+                        }
+                        else -> null
+                    }
+                    if (countdownText != null) {
+                        rv.setViewVisibility(R.id.tv_countdown, View.VISIBLE)
+                        rv.setTextViewText(R.id.tv_countdown, countdownText)
+                    }
+                } catch (_: Exception) {}
+            }
+
             rv.addView(R.id.container_courses, itemRv)
 
             if (index < courses.size - 1) {
@@ -130,6 +172,7 @@ object ListVerticalNativeRenderer {
     private fun showFullStatus(rv: RemoteViews, title: String, msg: String) {
         rv.setViewVisibility(R.id.inner_content_card, View.GONE)
         rv.setViewVisibility(R.id.container_full_status, View.VISIBLE)
+        rv.setViewVisibility(R.id.btn_refresh, View.GONE)
         rv.setTextViewText(R.id.tv_full_status_title, title)
         rv.setTextViewText(R.id.tv_full_status_msg, msg)
     }

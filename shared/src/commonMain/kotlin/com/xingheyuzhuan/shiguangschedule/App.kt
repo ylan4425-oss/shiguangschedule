@@ -8,7 +8,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,8 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
@@ -27,6 +32,8 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.xingheyuzhuan.shiguangschedule.data.model.StartScreen
+import com.xingheyuzhuan.shiguangschedule.data.repository.AppSettingsRepository
+import com.xingheyuzhuan.shiguangschedule.ui.components.DonateCapsuleButton
 import com.xingheyuzhuan.shiguangschedule.ui.components.TimeSlotNoticePopup
 import com.xingheyuzhuan.shiguangschedule.ui.schedule.WeeklyScheduleScreen
 import com.xingheyuzhuan.shiguangschedule.ui.schoolselection.list.AdapterSelectionScreen
@@ -54,37 +61,55 @@ import com.xingheyuzhuan.shiguangschedule.ui.settings.time.TimeSlotManagementScr
 import com.xingheyuzhuan.shiguangschedule.ui.settings.update.UpdateRepoScreen
 import com.xingheyuzhuan.shiguangschedule.ui.theme.ShiguangScheduleTheme
 import com.xingheyuzhuan.shiguangschedule.ui.today.TodayScheduleScreen
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
-    val viewModel: SettingsViewModel = koinViewModel()
-    val state by viewModel.uiState.collectAsState()
-    var showNoticePopup by remember { mutableStateOf(false) }
+ val viewModel: SettingsViewModel = koinViewModel()
+ val state by viewModel.uiState.collectAsState()
+ var showNoticePopup by remember { mutableStateOf(false) }
+ val appSettingsRepository: AppSettingsRepository = org.koin.compose.koinInject()
+ val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(state.isReady, state.appSettings.hasVisitedTimeSlotSettings) {
-        if (state.isReady && !state.appSettings.hasVisitedTimeSlotSettings) {
-            showNoticePopup = true
-        }
-    }
+ LaunchedEffect(state.isReady, state.appSettings.hasVisitedTimeSlotSettings) {
+ if (state.isReady && !state.appSettings.hasVisitedTimeSlotSettings) {
+ showNoticePopup = true
+ }
+ }
 
-    if (state.isReady) {
-        ShiguangScheduleTheme(settings = state.appSettings) {
-            val startDest = remember(state.appSettings.startScreen) {
-                when (state.appSettings.startScreen) {
-                    StartScreen.COURSE_SCHEDULE -> Destination.CourseSchedule
-                    StartScreen.TODAY_SCHEDULE -> Destination.TodaySchedule
-                }
-            }
-            AppNavigation(startDestination = startDest)
+ if (state.isReady) {
+ ShiguangScheduleTheme(settings = state.appSettings) {
+ val startDest = remember(state.appSettings.startScreen) {
+ when (state.appSettings.startScreen) {
+ StartScreen.COURSE_SCHEDULE -> Destination.CourseSchedule
+ StartScreen.TODAY_SCHEDULE -> Destination.TodaySchedule
+ }
+ }
+ Box(modifier = Modifier.fillMaxSize()) {
+ AppNavigation(startDestination = startDest)
 
-            if (showNoticePopup) {
-                TimeSlotNoticePopup(onDismiss = { showNoticePopup = false })
-            }
-        }
-    } else {
-        Surface(modifier = Modifier.fillMaxSize()) {}
-    }
+ DonateCapsuleButton(
+ modifier = Modifier
+ .align(Alignment.TopStart)
+ .padding(top = 8.dp, start = 8.dp)
+ )
+
+ if (showNoticePopup) {
+ TimeSlotNoticePopup(onDismiss = { dontShowAgain ->
+ showNoticePopup = false
+ if (dontShowAgain) {
+ coroutineScope.launch {
+ appSettingsRepository.markTimeSlotSettingsVisited()
+ }
+ }
+ })
+ }
+ }
+ }
+ } else {
+ Surface(modifier = Modifier.fillMaxSize()) {}
+ }
 }
 
 @Composable

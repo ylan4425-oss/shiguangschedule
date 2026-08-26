@@ -51,6 +51,15 @@
             android:exported="false" />
 
         <receiver
+            android:name=".widget.WidgetRefreshReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.xingheyuzhuan.shiguangschedule.WIDGET_REFRESH" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".widget.tiny.TinyNativeProvider"
             android:label="@string/widget_name_tiny"
             android:exported="false">

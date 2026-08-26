@@ -10,16 +10,15 @@ import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.temporal.ChronoUnit
 
 object TinyNativeRenderer {
 
     fun render(context: Context, snapshot: WidgetSnapshot): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.widget_tiny_native)
 
-        // 状态彻底重置
         resetWidgetState(rv)
 
-        // 设置点击跳转
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -27,21 +26,21 @@ object TinyNativeRenderer {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         rv.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
-        // 数据准备
         val allCourses = snapshot.courses
         val currentWeek = if (snapshot.current_week <= 0) null else snapshot.current_week
         val now = LocalTime.now()
         val todayStr = LocalDate.now().toString()
 
-        // 状态渲染逻辑
-
-        // 情况 A：假期处理
         if (currentWeek == null) {
             showStatus(rv, context.getString(R.string.title_vacation), context.getString(R.string.widget_vacation_expecting))
             return rv
         }
 
-        // 情况 B：开学期间数据过滤
+        if (allCourses.isEmpty()) {
+            showStatus(rv, context.getString(R.string.widget_no_courses_guide))
+            return rv
+        }
+
         val todayAllCourses = allCourses.filter { it.date == todayStr || it.date.isBlank() }
         val nextCourse = todayAllCourses.firstOrNull {
             !it.is_skipped && try {
@@ -50,7 +49,6 @@ object TinyNativeRenderer {
         }
 
         if (nextCourse != null) {
-            // 有课显示逻辑
             rv.setViewVisibility(R.id.container_info, View.VISIBLE)
             rv.setViewVisibility(R.id.bubble_frame, View.VISIBLE)
             rv.setViewVisibility(R.id.container_status, View.GONE)
@@ -61,12 +59,10 @@ object TinyNativeRenderer {
             rv.setTextViewText(R.id.tv_course_time, timeText)
             rv.setTextViewText(R.id.tv_course_position, nextCourse.position)
 
-            // 剩余课程数统计 (基于原始列表索引)
             val nextCourseIndex = todayAllCourses.indexOf(nextCourse)
             val remainingCount = todayAllCourses.size - nextCourseIndex
             rv.setTextViewText(R.id.tv_remaining_count, remainingCount.toString())
 
-            // 颜色渲染
             val style = snapshot.style
             val colorInt = nextCourse.color_int
             if (style != null && colorInt < style.course_color_maps.size) {
@@ -74,8 +70,29 @@ object TinyNativeRenderer {
                 rv.setInt(R.id.bubble_bg_image, "setColorFilter", colorPair.light_color.toInt())
                 rv.setInt(R.id.bubble_bg_image_dark, "setColorFilter", colorPair.dark_color.toInt())
             }
+
+            try {
+                val startTime = LocalTime.parse(nextCourse.start_time)
+                val endTime = LocalTime.parse(nextCourse.end_time)
+                val countdownText = when {
+                    now.isAfter(startTime) && now.isBefore(endTime) -> {
+                        context.getString(R.string.widget_countdown_in_class)
+                    }
+                    now.isBefore(startTime) && ChronoUnit.MINUTES.between(now, startTime) <= 5 -> {
+                        context.getString(R.string.widget_countdown_5min)
+                    }
+                    else -> null
+                }
+                if (countdownText != null) {
+                    rv.setViewVisibility(R.id.tv_countdown, View.VISIBLE)
+                    rv.setTextViewText(R.id.tv_countdown, countdownText)
+                } else {
+                    rv.setViewVisibility(R.id.tv_countdown, View.GONE)
+                }
+            } catch (_: Exception) {
+                rv.setViewVisibility(R.id.tv_countdown, View.GONE)
+            }
         } else {
-            // 无课状态
             val tip = if (todayAllCourses.isEmpty()) {
                 context.getString(R.string.text_no_courses_today)
             } else {
@@ -87,13 +104,11 @@ object TinyNativeRenderer {
         return rv
     }
 
-    /**
-     * 核心优化：每次渲染前强制归零可见性，消除跨状态残留
-     */
     private fun resetWidgetState(rv: RemoteViews) {
         rv.setViewVisibility(R.id.container_info, View.GONE)
         rv.setViewVisibility(R.id.bubble_frame, View.GONE)
         rv.setViewVisibility(R.id.container_status, View.GONE)
+        rv.setViewVisibility(R.id.tv_countdown, View.GONE)
     }
 
     private fun showStatus(rv: RemoteViews, title: String, message: String? = null) {
