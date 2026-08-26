@@ -42,7 +42,7 @@
                 android:layout_height="16dp"
                 android:layout_toStartOf="@id/tv_header_count_summary"
                 android:layout_marginEnd="6dp"
-                android:src="@android:drawable/ic_popup_refresh"
+                android:src="@drawable/ic_widget_refresh"
                 android:contentDescription="@string/a11y_widget_refresh"
                 android:visibility="visible" />
         </RelativeLayout>
