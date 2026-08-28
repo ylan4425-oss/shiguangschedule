@@ -2,7 +2,6 @@ package com.xingheyuzhuan.shiguangschedule.ui.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -50,9 +49,6 @@ fun DonateCapsuleButton(
     if (!isDonateQrSupported) return
 
     var showDialog by remember { mutableStateOf(false) }
-    // 用 MutableTransitionState 持久持有显隐状态，确保 enter 与 exit 动画都能播放
-    // （Dialog 随 showDialog 卸载会导致 exit 无法触发，故改用自定义全屏遮罩）。
-    val transitionState = remember { MutableTransitionState(false) }
 
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -78,7 +74,6 @@ fun DonateCapsuleButton(
                 indication = null
             ) {
                 showDialog = true
-                transitionState.targetState = true
             }
             .padding(vertical = 10.dp, horizontal = 7.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -100,9 +95,12 @@ fun DonateCapsuleButton(
         )
     }
 
-    // 遮罩：仅在过渡进行中或可见时存在，点击任意处关闭
+    // 全屏遮罩 + 卡片弹窗。
+    // 不用 Dialog：Dialog 会随 showDialog=false 立即卸载，导致 exit 动画被中断。
+    // 用 AnimatedVisibility(visible = showDialog) 会在合成树中保留内容直到退场动画结束，
+    // 从而正常播放 fade/scale 退出动画。
     AnimatedVisibility(
-        visibleState = transitionState,
+        visible = showDialog,
         enter = fadeIn(animationSpec = tween(durationMillis = 200)),
         exit = fadeOut(animationSpec = tween(durationMillis = 150)),
         modifier = Modifier.fillMaxSize()
@@ -111,12 +109,12 @@ fun DonateCapsuleButton(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.45f))
-                .clickable { showDialog = false; transitionState.targetState = false },
+                .clickable { showDialog = false },
             contentAlignment = Alignment.Center
         ) {
             // 卡片：缩放入场 / 退场
             AnimatedVisibility(
-                visibleState = transitionState,
+                visible = showDialog,
                 enter = scaleIn(
                     initialScale = 0.85f,
                     animationSpec = tween(durationMillis = 250)
@@ -165,7 +163,6 @@ fun DonateCapsuleButton(
                                     )
                                     .clickable {
                                         showDialog = false
-                                        transitionState.targetState = false
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -209,9 +206,8 @@ fun DonateCapsuleButton(
         }
     }
 
-    // 系统返回键关闭（动画由 transitionState 统一驱动）
+    // 系统返回键关闭
     BackHandler(enabled = showDialog) {
         showDialog = false
-        transitionState.targetState = false
     }
 }
