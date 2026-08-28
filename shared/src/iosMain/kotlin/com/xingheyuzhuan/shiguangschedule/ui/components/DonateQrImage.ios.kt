@@ -1,11 +1,19 @@
 package com.xingheyuzhuan.shiguangschedule.ui.components
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import org.jetbrains.compose.resources.painterResource
+import shiguangschedule.shared.generated.resources.Res
 
 @Composable
 actual fun DonateQrImage(modifier: Modifier) {
-    // iOS 端暂不展示赞赏二维码
-    Box(modifier = modifier)
+    // 使用 Compose Resources 中的赞赏二维码（与 Android / 桌面共用同一份资源）。
+    Image(
+        painter = painterResource(Res.drawable.donate_qr),
+        contentDescription = "赞赏码",
+        contentScale = ContentScale.Fit,
+        modifier = modifier
+    )
 }

@@ -1,13 +1,17 @@
 package com.xingheyuzhuan.shiguangschedule.ui.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,109 +35,183 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun DonateCapsuleButton(
     modifier: Modifier = Modifier
 ) {
-    var showDialog by remember { mutableStateOf(false) }
+    // 平台能力守卫：无赞赏二维码资源的平台直接隐藏入口，避免点击后弹出空二维码。
+    // iOS / 桌面端现已通过 Compose Resources 提供二维码，故三端均为 true。
+    if (!isDonateQrSupported) return
 
-    Row(
+    var showDialog by remember { mutableStateOf(false) }
+    // 用 MutableTransitionState 持久持有显隐状态，确保 enter 与 exit 动画都能播放
+    // （Dialog 随 showDialog 卸载会导致 exit 无法触发，故改用自定义全屏遮罩）。
+    val transitionState = remember { MutableTransitionState(false) }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val capsuleScale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (pressed) 0.9f else 1f,
+        animationSpec = tween(durationMillis = 150),
+        label = "capsuleScale"
+    )
+
+    // 收缩态：竖版胶囊（赞/赏 两字上下排列）
+    Column(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .graphicsLayer {
+                scaleX = capsuleScale
+                scaleY = capsuleScale
+            }
+            .clip(RoundedCornerShape(16.dp))
             .background(
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.92f)
             )
-            .clickable { showDialog = true }
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                showDialog = true
+                transitionState.targetState = true
+            }
+            .padding(vertical = 10.dp, horizontal = 7.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "赞赏",
+            text = "赞",
             fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            lineHeight = 14.sp
+        )
+        Text(
+            text = "赏",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            lineHeight = 14.sp
         )
     }
 
-    if (showDialog) {
-        DonateDialog(onDismiss = { showDialog = false })
-    }
-}
-
-@Composable
-private fun DonateDialog(
-    onDismiss: () -> Unit
-) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true,
-            usePlatformDefaultWidth = false
-        )
+    // 遮罩：仅在过渡进行中或可见时存在，点击任意处关闭
+    AnimatedVisibility(
+        visibleState = transitionState,
+        enter = fadeIn(animationSpec = tween(durationMillis = 200)),
+        exit = fadeOut(animationSpec = tween(durationMillis = 150)),
+        modifier = Modifier.fillMaxSize()
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.45f))
+                .clickable { showDialog = false; transitionState.targetState = false },
             contentAlignment = Alignment.Center
         ) {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+            // 卡片：缩放入场 / 退场
+            AnimatedVisibility(
+                visibleState = transitionState,
+                enter = scaleIn(
+                    initialScale = 0.85f,
+                    animationSpec = tween(durationMillis = 250)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                modifier = Modifier
-                    .padding(horizontal = 40.dp)
-                    .fillMaxWidth()
+                exit = scaleOut(
+                    targetScale = 0.85f,
+                    animationSpec = tween(durationMillis = 150)
+                )
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                     modifier = Modifier
+                        .padding(horizontal = 40.dp)
                         .fillMaxWidth()
-                        .padding(24.dp)
+                        // 消费卡片区域的点击，避免穿透到遮罩导致误关闭
+                        .clickable { }
                 ) {
-                    Text(
-                        text = "支持开发者",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-
-                    Text(
-                        text = "扫码赞赏，感谢支持",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    Box(
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .size(200.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .padding(24.dp)
                     ) {
-                        DonateQrImage(modifier = Modifier.fillMaxSize())
+                        // 顶部标题 + 关闭按钮
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "支持开发者",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(
+                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    )
+                                    .clickable {
+                                        showDialog = false
+                                        transitionState.targetState = false
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "✕",
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "扫码赞赏，感谢支持",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .size(200.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            DonateQrImage(modifier = Modifier.fillMaxSize())
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = "点击任意位置关闭",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "点击任意位置关闭",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
                 }
             }
         }
+    }
+
+    // 系统返回键关闭（动画由 transitionState 统一驱动）
+    BackHandler(enabled = showDialog) {
+        showDialog = false
+        transitionState.targetState = false
     }
 }

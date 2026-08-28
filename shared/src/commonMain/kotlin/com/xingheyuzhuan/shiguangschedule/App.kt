@@ -11,6 +11,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,7 +66,9 @@ import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun App() {
+fun App(
+    launchTarget: WidgetLaunchTarget? = null
+) {
     val viewModel: SettingsViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsState()
     var showNoticePopup by remember { mutableStateOf(false) }
@@ -80,10 +83,15 @@ fun App() {
 
     if (state.isReady) {
         ShiguangScheduleTheme(settings = state.appSettings) {
-            val startDest = remember(state.appSettings.startScreen) {
-                when (state.appSettings.startScreen) {
-                    StartScreen.COURSE_SCHEDULE -> Destination.CourseSchedule
-                    StartScreen.TODAY_SCHEDULE -> Destination.TodaySchedule
+            val startDest = remember(state.appSettings.startScreen, launchTarget) {
+                // 小组件点击跳转目标优先：今日 → 今日课表，对应周 → 周课表（默认停在当前周）
+                when (launchTarget) {
+                    WidgetLaunchTarget.TODAY -> Destination.TodaySchedule
+                    WidgetLaunchTarget.WEEK -> Destination.CourseSchedule
+                    null -> when (state.appSettings.startScreen) {
+                        StartScreen.COURSE_SCHEDULE -> Destination.CourseSchedule
+                        StartScreen.TODAY_SCHEDULE -> Destination.TodaySchedule
+                    }
                 }
             }
             Box(modifier = Modifier.fillMaxSize()) {
@@ -92,6 +100,7 @@ fun App() {
                 DonateCapsuleButton(
                     modifier = Modifier
                         .align(Alignment.TopStart)
+                        .statusBarsPadding()
                         .padding(top = 8.dp, start = 8.dp)
                 )
 

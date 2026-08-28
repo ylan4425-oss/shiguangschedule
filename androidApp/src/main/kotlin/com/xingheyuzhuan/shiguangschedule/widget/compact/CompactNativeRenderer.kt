@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
+import com.xingheyuzhuan.shiguangschedule.widget.WidgetIntent
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetRefreshReceiver
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
@@ -24,7 +25,8 @@ object CompactNativeRenderer {
         resetWidgetState(rv)
 
         val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(WidgetIntent.EXTRA_WIDGET_TARGET, WidgetIntent.TARGET_TODAY)
         }
         val pendingIntent = PendingIntent.getActivity(
             context, 0, intent,
