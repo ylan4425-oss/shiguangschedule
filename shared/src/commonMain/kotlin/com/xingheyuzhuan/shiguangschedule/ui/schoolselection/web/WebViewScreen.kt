@@ -380,18 +380,26 @@ fun WebViewScreen(
                             val fileSystem = viewModel.fileSystem
                             val jsFilePath = viewModel.filesDir / "repo" / "schools" / "resources" / assetJsPath
 
+                            // 目标教务系统页面可能未加载 jQuery；导入脚本普遍依赖 $ 进行 DOM 解析。
+                            // 先以 guarded 方式补注入 jQuery（仅当页面确实缺失时才执行），再运行适配脚本。
+                            val jqueryGuard = """
+                                if (typeof window.jQuery === 'undefined' && typeof window.${'$'} === 'undefined') {
+                                ${JQueryBootstrap.source}
+                                }
+                            """.trimIndent()
+
                             if (fileSystem.exists(jsFilePath)) {
                                 val jsCode = fileSystem.read(jsFilePath) { readUtf8() }
                                 bridgeHandler.setImportTableId(tableId)
 
-                                val fullJsScript = "window.currentTableId = '$tableId';\n$jsCode"
+                                val fullJsScript = jqueryGuard + "\nwindow.currentTableId = '$tableId';\n" + jsCode
                                 webViewController.executeScript(fullJsScript)
 
                                 ToastManager.show(toastExecutingImport)
                             } else {
                                 bridgeHandler.setImportTableId(tableId)
 
-                                val fullJsScript = "window.currentTableId = '$tableId';\n${GenericAdapterScript.script}"
+                                val fullJsScript = jqueryGuard + "\nwindow.currentTableId = '$tableId';\n" + GenericAdapterScript.script
                                 webViewController.executeScript(fullJsScript)
 
                                 ToastManager.show(toastExecutingImport)
