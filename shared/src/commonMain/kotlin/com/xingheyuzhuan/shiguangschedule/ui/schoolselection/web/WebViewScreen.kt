@@ -48,6 +48,8 @@ import com.xingheyuzhuan.shiguangschedule.ui.components.CourseTablePickerDialog
 import com.xingheyuzhuan.shiguangschedule.ui.components.ToastManager
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.koinInject
@@ -88,7 +90,7 @@ import shiguangschedule.shared.generated.resources.toast_no_script_manual_import
 import shiguangschedule.shared.generated.resources.toast_switched_to_desktop
 import shiguangschedule.shared.generated.resources.toast_switched_to_phone
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun WebViewScreen(
     onNavigate: (Destination) -> Unit,
@@ -376,36 +378,39 @@ fun WebViewScreen(
                         showCourseTablePicker = false
                         val tableId = selectedTable.id
 
-                        try {
-                            val fileSystem = viewModel.fileSystem
-                            val jsFilePath = viewModel.filesDir / "repo" / "schools" / "resources" / assetJsPath
+                        coroutineScope.launch {
+                            try {
+                                // 目标教务系统页面可能未加载 jQuery；导入脚本普遍依赖 $ 进行 DOM 解析。
+                                // 从 composeResources 读取内嵌 jQuery，仅当页面缺失时才补注入。
+                                val jquerySource = Res.readBytes("files/jquery-3.7.1.slim.min.js").decodeToString()
+                                val jqueryGuard = """
+                                    if (typeof window.jQuery === 'undefined' && typeof window.${'$'} === 'undefined') {
+                                    $jquerySource
+                                    }
+                                """.trimIndent()
 
-                            // 目标教务系统页面可能未加载 jQuery；导入脚本普遍依赖 $ 进行 DOM 解析。
-                            // 先以 guarded 方式补注入 jQuery（仅当页面确实缺失时才执行），再运行适配脚本。
-                            val jqueryGuard = """
-                                if (typeof window.jQuery === 'undefined' && typeof window.${'$'} === 'undefined') {
-                                ${JQueryBootstrap.source}
+                                val fileSystem = viewModel.fileSystem
+                                val jsFilePath = viewModel.filesDir / "repo" / "schools" / "resources" / assetJsPath
+
+                                if (fileSystem.exists(jsFilePath)) {
+                                    val jsCode = fileSystem.read(jsFilePath) { readUtf8() }
+                                    bridgeHandler.setImportTableId(tableId)
+
+                                    val fullJsScript = jqueryGuard + "\nwindow.currentTableId = '$tableId';\n" + jsCode
+                                    webViewController.executeScript(fullJsScript)
+
+                                    ToastManager.show(toastExecutingImport)
+                                } else {
+                                    bridgeHandler.setImportTableId(tableId)
+
+                                    val fullJsScript = jqueryGuard + "\nwindow.currentTableId = '$tableId';\n" + GenericAdapterScript.script
+                                    webViewController.executeScript(fullJsScript)
+
+                                    ToastManager.show(toastExecutingImport)
                                 }
-                            """.trimIndent()
-
-                            if (fileSystem.exists(jsFilePath)) {
-                                val jsCode = fileSystem.read(jsFilePath) { readUtf8() }
-                                bridgeHandler.setImportTableId(tableId)
-
-                                val fullJsScript = jqueryGuard + "\nwindow.currentTableId = '$tableId';\n" + jsCode
-                                webViewController.executeScript(fullJsScript)
-
-                                ToastManager.show(toastExecutingImport)
-                            } else {
-                                bridgeHandler.setImportTableId(tableId)
-
-                                val fullJsScript = jqueryGuard + "\nwindow.currentTableId = '$tableId';\n" + GenericAdapterScript.script
-                                webViewController.executeScript(fullJsScript)
-
-                                ToastManager.show(toastExecutingImport)
+                            } catch (e: Exception) {
+                                ToastManager.show(toastLoadImportFailedFmt.replace("%s", e.message ?: ""))
                             }
-                        } catch (e: Exception) {
-                            ToastManager.show(toastLoadImportFailedFmt.replace("%s", e.message ?: ""))
                         }
                     }
                 )
