@@ -1,0 +1,45 @@
+时光课程表 (ShiGuang Schedule)
+Copyright 2025 XingHeYuZhuan
+
+This product includes software developed by XingHeYuZhuan and licensed under the
+Apache License, Version 2.0 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+The original project is available at:
+    https://github.com/ylan4425-oss/shiguangschedule
+
+------------------------------------------------------------------------------
+修改与新增说明 (Modifications and additions)
+------------------------------------------------------------------------------
+本仓库在当前维护者名下进行了以下修改与新增，相关文件已按 Apache License 2.0
+第 4(b) 条在文件头标注「文件已被修改」或「新增文件」：
+
+1. 赞赏码多平台支持
+   - 新增 PlatformCapabilities（commonMain / androidMain / jvmMain / iosMain）
+     用于区分各平台是否支持赞赏二维码，非 Android 平台隐藏赞赏入口。
+   - DonateCapsuleButton.kt：竖版胶囊按钮、关闭按钮、入场/退出动画。
+   - DonateQrImage（iosMain / jvmMain）：改用 Compose Resources 共享二维码图片。
+   - App.kt：胶囊下移避开状态栏（statusBarsPadding）。
+2. 桌面小组件点击跳转目标
+   - 新增 WidgetLaunchTarget（commonMain）与 WidgetIntent（androidApp）。
+   - MainActivity.kt 解析跳转参数并传递给 App。
+   - 四个小组件渲染器（tiny / compact / double_days / list_vertical）注入跳转目标。
+3. 教务系统导入兼容性
+   - WebViewScreen.kt：在运行学校导入脚本前，若目标页面未加载 jQuery，
+     则补注入内嵌的 jQuery（见下方第三方组件说明）。
+
+上述修改与新增同样以 Apache License 2.0 分发。
+
+------------------------------------------------------------------------------
+第三方组件 (Third-party components)
+------------------------------------------------------------------------------
+本产品内置以下第三方组件：
+
+  - jQuery 3.7.1 (slim build)
+    许可证：MIT License
+    版权：Copyright OpenJS Foundation and other contributors, https://openjsf.org/
+    源码位置：shared/src/commonMain/composeResources/files/jquery-3.7.1.slim.min.js
+
+本 NOTICE 文件依据 Apache License 2.0 第 4(d) 条提供。
